@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, FileText } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+
+const API_BASE_URL = "http://localhost:6969";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,11 +19,13 @@ const SignUp = () => {
     username: "",
     email: "",
     password: "",
-    bio: "",
   });
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const isPasswordValid = (password: string) =>
+    /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
 
   const passwordStrength = (() => {
     const p = form.password;
@@ -40,17 +44,48 @@ const SignUp = () => {
     return map[Math.min(score, 4) - 1] || map[0];
   })();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
+
+    // Frontend validation: username length and password strength
+    if (form.username.length < 3 || form.username.length > 20) {
+      toast.error("Username must be between 3 and 20 characters.");
+      return;
+    }
+    if (!isPasswordValid(form.password)) {
+      toast.error(
+        "Password must be at least 8 characters and include one uppercase letter and one special character."
+      );
       return;
     }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: form.fullName,
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data?.message || "Failed to create account");
+      }
+
+      toast.success(data.message || "Account created successfully.");
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong while creating your account.");
+    } finally {
       setLoading(false);
-      toast.info("Backend not connected yet. Enable Cloud to activate authentication.");
-    }, 1000);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -227,19 +262,18 @@ const SignUp = () => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Textarea
-                  id="bio"
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[80px] pl-10 resize-none"
-                  value={form.bio}
-                  onChange={(e) => update("bio", e.target.value)}
-                />
-              </div>
-            </div>
+            {/* Password validation message */}
+            {form.password.length > 0 && (
+              <p
+                className={`text-xs ${
+                  isPasswordValid(form.password) ? "text-green-500" : "text-destructive"
+                }`}
+              >
+                {isPasswordValid(form.password)
+                  ? "Password looks good."
+                  : "Password must be at least 8 characters and include one uppercase letter and one special character."}
+              </p>
+            )}
 
             <Button type="submit" className="h-11 w-full gap-2" disabled={loading}>
               {loading ? "Creating account…" : "Create Account"}

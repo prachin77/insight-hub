@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
+const API_BASE_URL = "http://localhost:6969";
+
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -16,13 +18,34 @@ const SignIn = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data?.message || "Failed to sign in");
+      }
+
+      toast.success(data.message || "Signed in successfully.");
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong while signing you in.");
+    } finally {
       setLoading(false);
-      toast.info("Backend not connected yet. Enable Cloud to activate authentication.");
-    }, 1000);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
