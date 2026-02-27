@@ -1,15 +1,42 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, PenSquare, Bell, Moon, Sun, Menu, X } from "lucide-react";
+import { Search, PenSquare, Bell, Moon, Sun, Menu, X, LogOut, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getInitials = () => {
+    if (user?.fullName) {
+      return user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return user?.username?.charAt(0).toUpperCase() || "U";
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -93,10 +120,62 @@ const Header = () => {
             Write
           </Button>
 
-          {/* Sign In */}
-          <Button variant="outline" size="sm" className="hidden md:flex" asChild>
-            <Link to="/signin">Sign In</Link>
-          </Button>
+          {/* Auth: User Icon or Sign In */}
+          {isAuthenticated ? (
+            <div className="relative hidden md:block" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-bold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
+              >
+                {getInitials()}
+              </button>
+              <AnimatePresence>
+                {userMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-card shadow-xl"
+                  >
+                    <div className="border-b border-border px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-bold text-primary-foreground">
+                          {getInitials()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            {user?.fullName || user?.username}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-1.5">
+                      <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        <User className="h-4 w-4" />
+                        Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setUserMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" className="hidden md:flex" asChild>
+              <Link to="/signin">Sign In</Link>
+            </Button>
+          )}
 
           {/* Mobile menu */}
           <Button
@@ -129,9 +208,24 @@ const Header = () => {
                   <PenSquare className="h-4 w-4" />
                   Write
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1" asChild>
-                  <Link to="/signin">Sign In</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <Link to="/signin">Sign In</Link>
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
@@ -142,3 +236,4 @@ const Header = () => {
 };
 
 export default Header;
+
