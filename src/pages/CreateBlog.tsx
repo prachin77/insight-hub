@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Header from "@/components/layout/Header";
+import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 const CreateBlog = () => {
     const navigate = useNavigate();
@@ -18,6 +20,8 @@ const CreateBlog = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
+    const [category, setCategory] = useState("");
+    const { user } = useAuth();
 
     const addTag = () => {
         const tag = tagInput.trim();
@@ -38,20 +42,58 @@ const CreateBlog = () => {
         }
     };
 
+    const countWords = (str: string) => {
+        return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !content.trim()) {
-            toast.error("Title and content are required.");
+
+        // Validation
+        if (title.length < 5 || title.length > 100) {
+            toast.error("Title must be between 5 and 100 characters.");
             return;
         }
+
+        const wordCount = countWords(content);
+        if (wordCount < 1 || wordCount > 500) {
+            toast.error("Content must be between 1 and 500 words.");
+            return;
+        }
+
+        if (!category.trim()) {
+            toast.error("Please select a category.");
+            return;
+        }
+
         setLoading(true);
         try {
-            // TODO: Replace with actual API call
-            await new Promise((r) => setTimeout(r, 1000));
+            const res = await fetch(`${API_BASE_URL}/blogs`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title,
+                    blog_content: content,
+                    tags,
+                    blog_image: imageUrl,
+                    category,
+                    author_id: user?.id || "anonymous", // Use user ID instead of email
+                }),
+                credentials: "include",
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to publish blog.");
+            }
+
             toast.success("Blog published successfully!");
             navigate("/");
-        } catch {
-            toast.error("Failed to publish blog.");
+        } catch (err: any) {
+            toast.error(err.message || "Failed to publish blog.");
         } finally {
             setLoading(false);
         }
@@ -93,6 +135,19 @@ const CreateBlog = () => {
                                 className="h-12 text-lg font-medium"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        {/* Category */}
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <Input
+                                id="category"
+                                placeholder="e.g. Technology, Lifestyle, Business..."
+                                className="h-11"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
                                 required
                             />
                         </div>

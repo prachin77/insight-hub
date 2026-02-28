@@ -9,11 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-
-const API_BASE_URL = "http://localhost:6969";
+import { API_BASE_URL } from "@/lib/api";
 
 const SignUp = () => {
-  const { login } = useAuth();  
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

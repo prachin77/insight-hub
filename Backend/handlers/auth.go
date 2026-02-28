@@ -28,16 +28,18 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	if err := db.CreateUser(c.Request.Context(), &req); err != nil {
+	userID, err := db.CreateUser(c.Request.Context(), &req)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
 		return
 	}
 
-	// Set auth cookie valid for 10 minutes
-	cookie := utils.NewAuthCookie(req.Email)
+	// Set auth cookie valid for 10 minutes using Document ID
+	cookie := utils.NewAuthCookie(userID)
 	http.SetCookie(c.Writer, &cookie)
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("registration successful", gin.H{
+		"id":       userID,
 		"fullName": req.FullName,
 		"email":    req.Email,
 		"username": req.Username,
@@ -51,16 +53,18 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if err := db.ValidateUser(c.Request.Context(), req.Email, req.Password); err != nil {
+	userID, err := db.ValidateUser(c.Request.Context(), req.Email, req.Password)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.NewErrorResponse(err.Error(), nil))
 		return
 	}
 
-	// Set auth cookie valid for 10 minutes
-	cookie := utils.NewAuthCookie(req.Email)
+	// Set auth cookie valid for 10 minutes using Document ID
+	cookie := utils.NewAuthCookie(userID)
 	http.SetCookie(c.Writer, &cookie)
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("login successful", gin.H{
+		"id":       userID,
 		"email":    req.Email,
 		"username": req.Username,
 	}))

@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-
-const API_BASE_URL = "http://localhost:6969";
+import { API_BASE_URL } from "@/lib/api";
 
 const SignIn = () => {
   const { login } = useAuth();

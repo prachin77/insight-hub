@@ -47,6 +47,8 @@ func main() {
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
 	r.POST("/logout", handlers.Logout)
+	r.POST("/blogs", handlers.CreateBlog)
+	r.GET("/blogs", handlers.GetBlogs)
 
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,22 +6,41 @@ import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
 import BlogCard from "@/components/home/BlogCard";
 import TrendingSidebar from "@/components/home/TrendingSidebar";
-import { blogs } from "@/lib/mockData";
+import { API_BASE_URL } from "@/lib/api";
 
 type FilterType = "latest" | "popular" | "most-liked" | "most-commented";
 
 const Index = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("latest");
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const featuredBlogs = blogs.filter((b) => b.featured).slice(0, 2);
-  const trendingBlogs = blogs.filter((b) => b.trending);
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/blogs`);
+        const data = await res.json();
+        if (data.success) {
+          setBlogs(data.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch blogs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
 
-  const sortedBlogs = [...blogs].sort((a, b) => {
+  const featuredBlogs = blogs.filter((b: any) => b.featured).slice(0, 2);
+  const trendingBlogs = blogs.filter((b: any) => b.trending);
+
+  const sortedBlogs = [...blogs].sort((a: any, b: any) => {
     switch (activeFilter) {
       case "popular": return b.views - a.views;
       case "most-liked": return b.likes - a.likes;
       case "most-commented": return b.comments - a.comments;
-      default: return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+      default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
 
@@ -43,7 +62,7 @@ const Index = () => {
         <p className="mt-1 text-sm text-muted-foreground">Hand-picked by our editors</p>
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           {featuredBlogs.map((blog, i) => (
-            <BlogCard key={blog.id} blog={blog} index={i} variant="featured" />
+            <BlogCard key={blog.title || i} blog={blog} index={i} variant="featured" />
           ))}
         </div>
       </section>
@@ -55,7 +74,7 @@ const Index = () => {
           <p className="mt-1 text-sm text-muted-foreground">Most engaging stories this week</p>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {trendingBlogs.map((blog, i) => (
-              <BlogCard key={blog.id} blog={blog} index={i} />
+              <BlogCard key={blog.title || i} blog={blog} index={i} />
             ))}
           </div>
         </div>
@@ -85,7 +104,7 @@ const Index = () => {
             </div>
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
               {sortedBlogs.map((blog, i) => (
-                <BlogCard key={blog.id} blog={blog} index={i} />
+                <BlogCard key={blog.title || i} blog={blog} index={i} />
               ))}
             </div>
           </div>

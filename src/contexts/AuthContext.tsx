@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 interface User {
+  id: string;
   email: string;
   username: string;
   fullName?: string;
@@ -34,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
-      await fetch("http://localhost:6969/logout", {
+      await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         credentials: "include",
       });
