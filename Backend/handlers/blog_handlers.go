@@ -41,6 +41,12 @@ func CreateBlog(c *gin.Context) {
 		return
 	}
 
+	// Validate author ID
+	if req.AuthorID == "" || req.AuthorID == "anonymous" {
+		c.JSON(http.StatusUnauthorized, models.NewErrorResponse("authenticated user required", nil))
+		return
+	}
+
 	userID, err := db.GetUserID(c.Request.Context(), req.AuthorID)
 	if err == nil {
 		req.AuthorID = userID

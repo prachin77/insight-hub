@@ -13,6 +13,8 @@ export interface Blog {
   title: string;
   blog_content: string;
   author_id: string;
+  author_name: string;
+  author_username: string;
   created_at: string;
   updated_at: string;
   tags: string[];
@@ -47,13 +49,11 @@ export const formatNumber = (num: number): string => {
 };
 
 export const formatDate = (dateStr: string): string => {
-  if (!dateStr) return "Unknown";
+  if (!dateStr) return "";
   const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
 };

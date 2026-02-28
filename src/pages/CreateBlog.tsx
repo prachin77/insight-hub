@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Image, Send, X } from "lucide-react";
@@ -21,7 +21,14 @@ const CreateBlog = () => {
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [category, setCategory] = useState("");
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            toast.error("Please sign in to create a blog.");
+            navigate("/signin");
+        }
+    }, [isAuthenticated, navigate]);
 
     const addTag = () => {
         const tag = tagInput.trim();
@@ -79,7 +86,7 @@ const CreateBlog = () => {
                     tags,
                     blog_image: imageUrl,
                     category,
-                    author_id: user?.id || "anonymous", // Use user ID instead of email
+                    author_id: user?.id,
                 }),
                 credentials: "include",
             });

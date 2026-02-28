@@ -45,15 +45,18 @@ const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
             </p>
             <div className="mt-5 flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center ring-2 ring-border">
-                <span className="text-[10px] font-bold">BY</span>
+                <span className="text-[10px] font-bold">{blog.author_name?.charAt(0) || "U"}</span>
               </div>
               <div>
-                <span className="text-sm font-medium text-card-foreground">{blog.author_id.slice(0, 8)}...</span>
+                <span className="text-sm font-medium text-card-foreground">{blog.author_name}</span>
                 <div className="flex items-center gap-1.5 hover:text-foreground">
                   <Eye className="h-4 w-4" />
                   <span>{formatNumber(blog.views)}</span>
                 </div>
               </div>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              {formatDate(blog.created_at)}
             </div>
             <div className="mt-4 flex items-center gap-4 text-muted-foreground">
               <span className="flex items-center gap-1 text-xs">
@@ -109,10 +112,10 @@ const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="h-7 w-7 rounded-full bg-secondary flex items-center justify-center ring-1 ring-border">
-              <span className="text-[10px] font-bold">BY</span>
+              <span className="text-[10px] font-bold">{blog.author_name?.charAt(0) || "U"}</span>
             </div>
             <div>
-              <span className="text-xs font-medium text-card-foreground">{blog.author_id.slice(0, 8)}...</span>
+              <span className="text-xs font-medium text-card-foreground">{blog.author_name}</span>
               <p className="text-xs text-muted-foreground">{formatDate(blog.created_at)}</p>
             </div>
           </div>

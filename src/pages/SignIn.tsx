@@ -42,7 +42,12 @@ const SignIn = () => {
         throw new Error(data?.message || "Failed to sign in");
       }
 
-      login({ email: data.data?.email || email, username: data.data?.username || "", fullName: data.data?.fullName }, rememberMe);
+      login({
+        id: data.data?.id,
+        email: data.data?.email || email,
+        username: data.data?.username || "",
+        fullName: data.data?.fullName
+      }, rememberMe);
       toast.success(data.message || "Signed in successfully.");
       navigate("/");
     } catch (err: any) {

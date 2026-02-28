@@ -82,7 +82,12 @@ const SignUp = () => {
         throw new Error(data?.message || "Failed to create account");
       }
 
-      login({ email: data.data?.email || form.email, username: data.data?.username || form.username, fullName: data.data?.fullName || form.fullName });
+      login({
+        id: data.data?.id,
+        email: data.data?.email || form.email,
+        username: data.data?.username || form.username,
+        fullName: data.data?.fullName || form.fullName
+      });
       toast.success(data.message || "Account created successfully.");
       navigate("/");
     } catch (err: any) {

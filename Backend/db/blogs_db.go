@@ -28,6 +28,18 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// Increment user's blog count
+	if blog.AuthorID != "" {
+		_, err = FirestoreClient.Collection("users").Doc(blog.AuthorID).Update(ctx, []firestore.Update{
+			{Path: "NoOfBlogs", Value: firestore.Increment(1)},
+		})
+		if err != nil {
+			// Log error but don't fail blog creation if increment fails
+			// Optional: you might want to return this error instead
+		}
+	}
+
 	return docRef.ID, nil
 }
 
@@ -65,8 +77,20 @@ func GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
 		if err := doc.DataTo(&b); err != nil {
 			continue
 		}
-		// Optionally inject the document ID into the model if needed,
-		// but the user asked to remove blog_id field from model.
+
+		// Fetch author details
+		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
+		if err == nil {
+			var u models.User
+			if err := userDoc.DataTo(&u); err == nil {
+				b.AuthorName = u.FullName
+				b.AuthorUsername = u.Username
+			}
+		} else {
+			b.AuthorName = "Unknown Author"
+			b.AuthorUsername = "unknown"
+		}
+
 		blogs = append(blogs, b)
 	}
 	return blogs, nil
