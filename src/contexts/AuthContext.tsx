@@ -8,7 +8,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (user: User) => void;
+  login: (user: User, rememberMe?: boolean) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -17,18 +17,34 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("inkwell_user");
+    const stored = localStorage.getItem("inkwell_user") || sessionStorage.getItem("inkwell_user");
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = useCallback((userData: User) => {
+  const login = useCallback((userData: User, rememberMe = false) => {
     setUser(userData);
-    localStorage.setItem("inkwell_user", JSON.stringify(userData));
+    if (rememberMe) {
+      localStorage.setItem("inkwell_user", JSON.stringify(userData));
+      sessionStorage.removeItem("inkwell_user");
+    } else {
+      sessionStorage.setItem("inkwell_user", JSON.stringify(userData));
+      localStorage.removeItem("inkwell_user");
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem("inkwell_user");
+  const logout = useCallback(async () => {
+    try {
+      await fetch("http://localhost:6969/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("inkwell_user");
+      sessionStorage.removeItem("inkwell_user");
+    }
   }, []);
 
   return (

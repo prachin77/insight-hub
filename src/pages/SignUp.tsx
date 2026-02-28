@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import { toast } from "sonner";
 const API_BASE_URL = "http://localhost:6969";
 
 const SignUp = () => {
+  const { login } = useAuth();  
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -83,8 +83,8 @@ const SignUp = () => {
         throw new Error(data?.message || "Failed to create account");
       }
 
-      toast.success(data.message || "Account created successfully.");
       login({ email: data.data?.email || form.email, username: data.data?.username || form.username, fullName: data.data?.fullName || form.fullName });
+      toast.success(data.message || "Account created successfully.");
       navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Something went wrong while creating your account.");

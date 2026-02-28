@@ -46,6 +46,7 @@ func main() {
 	// Auth routes
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
+	r.POST("/logout", handlers.Logout)
 
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)

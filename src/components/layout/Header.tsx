@@ -5,7 +5,8 @@ import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
+import AuthGuardButton from "@/components/AuthGuardButton";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -115,10 +116,10 @@ const Header = () => {
           </Button>
 
           {/* Write */}
-          <Button size="sm" className="hidden gap-2 md:flex">
+          <AuthGuardButton size="sm" className="flex-1 gap-2">
             <PenSquare className="h-4 w-4" />
             Write
-          </Button>
+          </AuthGuardButton>
 
           {/* Auth: User Icon or Sign In */}
           {isAuthenticated ? (
@@ -204,10 +205,10 @@ const Header = () => {
               <a href="#" className="text-sm font-medium text-muted-foreground">Trending</a>
               <a href="#" className="text-sm font-medium text-muted-foreground">Tags</a>
               <div className="flex gap-2 pt-2">
-                <Button size="sm" className="flex-1 gap-2">
+                <AuthGuardButton size="sm" className="flex-1 gap-2">
                   <PenSquare className="h-4 w-4" />
                   Write
-                </Button>
+                </AuthGuardButton>
                 {isAuthenticated ? (
                   <Button
                     variant="outline"

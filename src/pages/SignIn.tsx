@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import { toast } from "sonner";
 const API_BASE_URL = "http://localhost:6969";
 
 const SignIn = () => {
-  const navigate = useNavigate();
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,8 +43,8 @@ const SignIn = () => {
         throw new Error(data?.message || "Failed to sign in");
       }
 
+      login({ email: data.data?.email || email, username: data.data?.username || "", fullName: data.data?.fullName }, rememberMe);
       toast.success(data.message || "Signed in successfully.");
-      login({ email: data.data?.email || email, username: data.data?.username || "", fullName: data.data?.fullName });
       navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Something went wrong while signing you in.");

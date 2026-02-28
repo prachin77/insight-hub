@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,6 @@ import (
 	"github.com/prachin77/insight-hub/models"
 	"github.com/prachin77/insight-hub/utils"
 )
-
 
 func Register(c *gin.Context) {
 	var req models.User
@@ -44,7 +44,6 @@ func Register(c *gin.Context) {
 	}))
 }
 
-
 func Login(c *gin.Context) {
 	var req models.User
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -67,6 +66,16 @@ func Login(c *gin.Context) {
 	}))
 }
 
+func Logout(c *gin.Context) {
+	// Clear auth cookie by setting it with immediate expiration
+	cookie := utils.NewAuthCookie("")
+	cookie.MaxAge = -1
+	cookie.Expires = time.Now().Add(-1 * time.Hour)
+	http.SetCookie(c.Writer, &cookie)
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("logout successful", nil))
+}
+
 func isStrongPassword(pw string) bool {
 	if len(pw) < 8 {
 		return false
@@ -82,4 +91,3 @@ func isStrongPassword(pw string) bool {
 	}
 	return hasUpper && hasSpecial
 }
-

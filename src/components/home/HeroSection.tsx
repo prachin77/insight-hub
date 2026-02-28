@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
+import AuthGuardButton from "../AuthGuardButton";
 
 const HeroSection = () => {
   return (
@@ -43,9 +44,9 @@ const HeroSection = () => {
               Start Reading
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="lg" className="px-8 text-base">
+            <AuthGuardButton variant="outline" size="lg" className="px-8 text-base">
               Start Writing
-            </Button>
+            </AuthGuardButton>
           </div>
         </motion.div>
       </div>

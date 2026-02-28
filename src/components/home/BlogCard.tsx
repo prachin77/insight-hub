@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Eye, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Eye } from "lucide-react";
 import { Blog, formatNumber, formatDate } from "@/lib/mockData";
 
 interface BlogCardProps {
@@ -88,9 +88,6 @@ const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
           alt={blog.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <button className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground backdrop-blur-sm transition-colors hover:text-primary">
-          <Bookmark className="h-4 w-4" />
-        </button>
       </div>
 
       <div className="p-5">
