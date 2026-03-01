@@ -10,6 +10,7 @@ export interface Author {
 }
 
 export interface Blog {
+  id: string;
   title: string;
   blog_content: string;
   author_id: string;
@@ -22,6 +23,7 @@ export interface Blog {
   category: string;
   views: number;
   likes: number;
+  liked_by: string[];
   comments: number;
   featured: boolean;
   trending: boolean;

@@ -50,6 +50,9 @@ func main() {
 	r.POST("/blogs", handlers.CreateBlog)
 	r.GET("/blogs", handlers.GetBlogs)
 	r.POST("/blogs/increment-views", handlers.IncrementViews)
+	r.POST("/blogs/toggle-like", handlers.ToggleLike)
+	r.POST("/comments", handlers.AddComment)
+	r.GET("/comments", handlers.GetComments)
 
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)

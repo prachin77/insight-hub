@@ -89,3 +89,53 @@ func IncrementViews(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("view count incremented", nil))
 }
+
+func ToggleLike(c *gin.Context) {
+	var req struct {
+		Title    string `json:"title"`
+		Username string `json:"username"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	isLiked, err := db.ToggleLike(c.Request.Context(), req.Username, req.Title)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("like status toggled", gin.H{"liked": isLiked}))
+}
+
+func AddComment(c *gin.Context) {
+	var req models.Comment
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	if err := db.AddComment(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusCreated, models.NewSuccessResponse("comment added successfully", req))
+}
+
+func GetComments(c *gin.Context) {
+	blogID := c.Query("blog_id")
+	if blogID == "" {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("blog_id is required", nil))
+		return
+	}
+
+	comments, err := db.GetComments(c.Request.Context(), blogID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("comments fetched successfully", comments))
+}

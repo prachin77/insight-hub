@@ -1,27 +1,139 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Eye, Heart, MessageCircle, Calendar, Clock, User, Edit } from "lucide-react";
+import { ArrowLeft, Eye, Heart, MessageCircle, Calendar, User, Edit, Trash2, Send, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/layout/Header";
 import { Blog, formatNumber, formatDate } from "@/lib/mockData";
+import { toast } from "sonner";
+
 const BlogDetail = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const blog = location.state?.blog as Blog | undefined;
 
+  const [liked, setLiked] = useState(blog?.liked_by?.includes(user?.username || "") ?? false);
+  const [likeCount, setLikeCount] = useState(blog?.likes ?? 0);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState<{ id: string; author_username: string; content: string; created_at: string }[]>([]);
+
   useEffect(() => {
-    if (blog && blog.title) {
-      fetch(`${API_BASE_URL}/blogs/increment-views`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: blog.title }),
-      }).catch((err) => console.error("Failed to increment views:", err));
+    if (blog) {
+      // 1. Increment views
+      if (blog.title) {
+        fetch(`${API_BASE_URL}/blogs/increment-views`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: blog.title }),
+        }).catch((err) => console.error("Failed to increment views:", err));
+      }
+
+      // 2. Fetch comments
+      if (blog.id) {
+        fetch(`${API_BASE_URL}/comments?blog_id=${blog.id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && Array.isArray(data.data)) {
+              setComments(data.data);
+            }
+          })
+          .catch((err) => console.error("Failed to fetch comments:", err));
+      }
     }
   }, [blog]);
+
+  const isAuthor = user && blog && user.id === blog.author_id;
+
+  const handleLike = async () => {
+    if (!user) {
+      toast.error("Please sign in to like blogs");
+      return;
+    }
+    if (!blog?.title) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/blogs/toggle-like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: blog.title, username: user.username }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLiked(data.data.liked);
+        setLikeCount((prev) => (data.data.liked ? prev + 1 : prev - 1));
+      } else {
+        toast.error("Failed to update like status");
+      }
+    } catch {
+      toast.error("Failed to update like status");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!blog || !window.confirm("Are you sure you want to delete this blog?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/blogs/delete`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: blog.title }),
+      });
+      if (res.ok) {
+        toast.success("Blog deleted successfully");
+        navigate("/");
+      } else {
+        toast.error("Failed to delete blog");
+      }
+    } catch {
+      toast.error("Failed to delete blog");
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    if (!user) {
+      toast.error("Please sign in to comment");
+      return;
+    }
+    if (!blog?.id) return;
+
+    const newComment = {
+      blog_id: blog.id,
+      author_id: user.id,
+      content: commentText.trim(),
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newComment),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComments((prev) => [
+          {
+            id: Date.now().toString(),
+            author_username: user.username,
+            content: newComment.content,
+            created_at: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+        setCommentText("");
+        toast.success("Comment added");
+      } else {
+        toast.error("Failed to add comment");
+      }
+    } catch {
+      toast.error("Failed to add comment");
+    }
+  };
 
   if (!blog) {
     return (
@@ -37,6 +149,7 @@ const BlogDetail = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -49,30 +162,40 @@ const BlogDetail = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="container mx-auto">
+          <div className="container mx-auto flex items-center gap-2 flex-wrap">
             <Button
               variant="ghost"
               size="sm"
-              className="mb-4 text-foreground/80 hover:text-foreground"
+              className="text-foreground/80 hover:text-foreground"
               onClick={() => navigate("/")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
-            {user && blog && user.id === blog.author_id && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mb-4 ml-2 border-primary/50 bg-background/50 text-foreground backdrop-blur-sm hover:bg-primary/10"
-                asChild
-              >
-                <Link to={`/edit-blog/${encodeURIComponent(blog.title)}`} state={{ blog }}>
-                  <Edit className="mr-2 h-4 w-4" /> Edit Blog
-                </Link>
-              </Button>
+            {isAuthor && (
+              <>
+                <Button
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+                  asChild
+                >
+                  <Link to={`/edit-blog/${encodeURIComponent(blog.title)}`} state={{ blog }}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </Link>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="shadow-md"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </Button>
+              </>
             )}
           </div>
         </div>
       </div>
+
       {/* Content */}
       <article className="container mx-auto max-w-3xl px-4 py-10">
         {/* Tags */}
@@ -104,23 +227,109 @@ const BlogDetail = () => {
             <Calendar className="h-3.5 w-3.5" /> {formatDate(blog.created_at)}
           </span>
         </div>
-        {/* Stats */}
+
+        {/* Interactive Stats */}
         <div className="mt-4 flex items-center gap-5 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <Eye className="h-4 w-4" /> {formatNumber(blog.views)} views
           </span>
-          <span className="flex items-center gap-1.5">
-            <Heart className="h-4 w-4" /> {formatNumber(blog.likes)} likes
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MessageCircle className="h-4 w-4" /> {formatNumber(blog.comments)} comments
-          </span>
+          <button
+            onClick={handleLike}
+            className="flex items-center gap-1.5 transition-colors hover:text-pink-500"
+          >
+            <motion.div
+              key={liked ? "liked" : "unliked"}
+              initial={{ scale: 0.5 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            >
+              <Heart
+                className={`h-5 w-5 transition-colors ${liked ? "fill-pink-500 text-pink-500" : ""}`}
+              />
+            </motion.div>
+            <span className={liked ? "text-pink-500 font-medium" : ""}>{formatNumber(likeCount)} likes</span>
+          </button>
+          <button
+            onClick={() => setShowComments((prev) => !prev)}
+            className={`flex items-center gap-1.5 transition-colors hover:text-primary ${showComments ? "text-primary font-medium" : ""}`}
+          >
+            <MessageCircle className={`h-4 w-4 ${showComments ? "fill-primary/20" : ""}`} />
+            {formatNumber(blog.comments + comments.length)} comments
+          </button>
         </div>
+
         {/* Body */}
         <div className="prose prose-invert mt-10 max-w-none text-foreground/90 leading-relaxed whitespace-pre-line">
           {blog.blog_content}
         </div>
+
+        {/* Comments Section */}
+        <AnimatePresence>
+          {showComments && (
+            <motion.section
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-10 overflow-hidden"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground">Comments</h2>
+                <button onClick={() => setShowComments(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Add Comment */}
+              <div className="mt-4 flex gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary ring-1 ring-border">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex flex-1 gap-2">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+                    placeholder={user ? "Write a comment…" : "Sign in to comment"}
+                    disabled={!user}
+                    className="flex-1 rounded-lg border border-border bg-card px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
+                  />
+                  <Button size="sm" onClick={handleAddComment} disabled={!user || !commentText.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Comment List */}
+              <div className="mt-6 space-y-4">
+                {comments.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+                ) : (
+                  comments.map((c) => (
+                    <motion.div
+                      key={c.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-lg border border-border bg-card p-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary ring-1 ring-border">
+                          <span className="text-[10px] font-bold text-foreground">{c.author_username?.charAt(0).toUpperCase() || "U"}</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">@{c.author_username}</span>
+                        <span className="text-xs text-muted-foreground">{formatDate(c.created_at)}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-foreground/80">{c.content}</p>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
       </article>
+
       {/* Footer */}
       <footer className="border-t border-border bg-card py-12">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
@@ -130,4 +339,5 @@ const BlogDetail = () => {
     </div>
   );
 };
+
 export default BlogDetail;

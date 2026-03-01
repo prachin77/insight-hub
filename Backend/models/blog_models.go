@@ -16,6 +16,7 @@ type Blog struct {
 	AuthorUsername string    `firestore:"-" json:"author_username"`
 	Views          int       `firestore:"views" json:"views"`
 	Likes          int       `firestore:"likes" json:"likes"`
+	LikedBy        []string  `firestore:"liked_by" json:"liked_by"`
 	Comments       int       `firestore:"comments" json:"comments"`
 	Featured       bool      `firestore:"featured" json:"featured"`
 	Trending       bool      `firestore:"trending" json:"trending"`

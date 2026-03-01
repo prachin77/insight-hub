@@ -127,3 +127,92 @@ func IncrementViews(ctx context.Context, title string) error {
 	})
 	return err
 }
+
+// ToggleLike toggles the like status for a blog and increments/decrements the count.
+func ToggleLike(ctx context.Context, username, title string) (bool, error) {
+	if FirestoreClient == nil {
+		return false, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return false, errors.New("blog not found")
+	}
+
+	var b models.Blog
+	if err := doc.DataTo(&b); err != nil {
+		return false, err
+	}
+
+	alreadyLiked := false
+	for _, u := range b.LikedBy {
+		if u == username {
+			alreadyLiked = true
+			break
+		}
+	}
+
+	var updates []firestore.Update
+	if alreadyLiked {
+		updates = []firestore.Update{
+			{Path: "liked_by", Value: firestore.ArrayRemove(username)},
+			{Path: "likes", Value: firestore.Increment(-1)},
+		}
+	} else {
+		updates = []firestore.Update{
+			{Path: "liked_by", Value: firestore.ArrayUnion(username)},
+			{Path: "likes", Value: firestore.Increment(1)},
+		}
+	}
+
+	_, err = doc.Ref.Update(ctx, updates)
+	return !alreadyLiked, err
+}
+
+// AddComment stores a new comment in Firestore.
+func AddComment(ctx context.Context, comment *models.Comment) error {
+	if FirestoreClient == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	comment.CreatedAt = time.Now()
+	_, _, err := FirestoreClient.Collection("comments").Add(ctx, comment)
+	if err != nil {
+		return err
+	}
+
+	// Increment comment count in blog
+	doc, err := FirestoreClient.Collection(blogsCollection).Doc(comment.BlogID).Get(ctx)
+	if err == nil {
+		_, _ = doc.Ref.Update(ctx, []firestore.Update{
+			{Path: "comments", Value: firestore.Increment(1)},
+		})
+	}
+
+	return nil
+}
+
+// GetComments fetches all comments for a specific blog.
+func GetComments(ctx context.Context, blogID string) ([]models.Comment, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	var comments []models.Comment
+	iter := FirestoreClient.Collection("comments").Where("blog_id", "==", blogID).OrderBy("created_at", firestore.Desc).Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		var c models.Comment
+		if err := doc.DataTo(&c); err != nil {
+			continue
+		}
+		comments = append(comments, c)
+	}
+	return comments, nil
+}
