@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Blog, formatNumber, formatDate } from "@/lib/mockData";
 
 interface BlogCardProps {
@@ -9,13 +10,16 @@ interface BlogCardProps {
 }
 
 const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
+  const navigate = useNavigate();
+  const handleClick = () => navigate(`/blog/${encodeURIComponent(blog.title)}`, { state: { blog } });
   if (variant === "featured") {
     return (
       <motion.article
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
-        className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
+        onClick={handleClick}
+        className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
       >
         <div className="grid md:grid-cols-2">
           <div className="relative aspect-[4/3] overflow-hidden md:aspect-auto">
@@ -79,7 +83,8 @@ const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="group overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
+      onClick={handleClick}
+      className="group cursor-pointer overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
     >
       <div className="relative aspect-[16/9] overflow-hidden">
         <img

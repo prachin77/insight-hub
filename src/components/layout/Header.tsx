@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, PenSquare, Bell, Moon, Sun, Menu, X, LogOut, User } from "lucide-react";
+import { Search, PenSquare, Bell, Moon, Sun, Menu, X, LogOut, User, MessageSquare } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,18 @@ const Header = () => {
           >
             <Bell className="h-4 w-4" />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+          </Button>
+
+          {/* Messages */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            asChild
+          >
+            <Link to="/messages">
+              <MessageSquare className="h-4 w-4" />
+            </Link>
           </Button>
 
           {/* Write */}

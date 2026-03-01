@@ -77,6 +77,7 @@ func GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
 		if err := doc.DataTo(&b); err != nil {
 			continue
 		}
+		b.ID = doc.Ref.ID
 
 		// Fetch author details
 		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
@@ -108,4 +109,21 @@ func TitleExists(ctx context.Context, title string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// IncrementViews increases the view count for a blog with the given title.
+func IncrementViews(ctx context.Context, title string) error {
+	if FirestoreClient == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return errors.New("blog not found")
+	}
+
+	_, err = doc.Ref.Update(ctx, []firestore.Update{
+		{Path: "views", Value: firestore.Increment(1)},
+	})
+	return err
 }

@@ -73,3 +73,19 @@ func GetBlogs(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("blogs fetched successfully", blogs))
 }
+func IncrementViews(c *gin.Context) {
+	var req struct {
+		Title string `json:"title"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	if err := db.IncrementViews(c.Request.Context(), req.Title); err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("view count incremented", nil))
+}

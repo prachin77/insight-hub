@@ -3,6 +3,7 @@ package models
 import "time"
 
 type Blog struct {
+	ID             string    `firestore:"-" json:"id"`
 	Title          string    `firestore:"title" json:"title"`
 	BlogContent    string    `firestore:"blog_content" json:"blog_content"`
 	AuthorID       string    `firestore:"author_id" json:"author_id"`
