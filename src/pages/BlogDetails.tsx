@@ -18,9 +18,9 @@ const BlogDetail = () => {
 
   const [liked, setLiked] = useState(blog?.liked_by?.includes(user?.username || "") ?? false);
   const [likeCount, setLikeCount] = useState(blog?.likes ?? 0);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(true);
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState<{ id: string; author_username: string; content: string; created_at: string }[]>([]);
+  const [comments, setComments] = useState<{ comment_id: string; author_username: string; content: string; created_at: string }[]>([]);
 
   useEffect(() => {
     if (blog) {
@@ -105,6 +105,7 @@ const BlogDetail = () => {
     const newComment = {
       blog_id: blog.id,
       author_id: user.id,
+      author_username: user.username,
       content: commentText.trim(),
     };
 
@@ -118,7 +119,7 @@ const BlogDetail = () => {
       if (data.success) {
         setComments((prev) => [
           {
-            id: Date.now().toString(),
+            comment_id: data.data.comment_id || Date.now().toString(),
             author_username: user.username,
             content: newComment.content,
             created_at: new Date().toISOString(),
@@ -308,7 +309,7 @@ const BlogDetail = () => {
                 ) : (
                   comments.map((c) => (
                     <motion.div
-                      key={c.id}
+                      key={c.comment_id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="rounded-lg border border-border bg-card p-4"

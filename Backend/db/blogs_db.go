@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"sort"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -24,7 +25,10 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 	blog.Comments = 0
 	blog.Views = 0
 
-	docRef, _, err := FirestoreClient.Collection(blogsCollection).Add(ctx, blog)
+	docRef := FirestoreClient.Collection(blogsCollection).NewDoc()
+	blog.ID = docRef.ID
+
+	_, err := docRef.Set(ctx, blog)
 	if err != nil {
 		return "", err
 	}
@@ -176,7 +180,10 @@ func AddComment(ctx context.Context, comment *models.Comment) error {
 	}
 
 	comment.CreatedAt = time.Now()
-	_, _, err := FirestoreClient.Collection("comments").Add(ctx, comment)
+	docRef := FirestoreClient.Collection("comments").NewDoc()
+	comment.CommentID = docRef.ID
+
+	_, err := docRef.Set(ctx, comment)
 	if err != nil {
 		return err
 	}
@@ -199,7 +206,7 @@ func GetComments(ctx context.Context, blogID string) ([]models.Comment, error) {
 	}
 
 	var comments []models.Comment
-	iter := FirestoreClient.Collection("comments").Where("blog_id", "==", blogID).OrderBy("created_at", firestore.Desc).Documents(ctx)
+	iter := FirestoreClient.Collection("comments").Where("blog_id", "==", blogID).Documents(ctx)
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
@@ -212,7 +219,14 @@ func GetComments(ctx context.Context, blogID string) ([]models.Comment, error) {
 		if err := doc.DataTo(&c); err != nil {
 			continue
 		}
+		c.CommentID = doc.Ref.ID
 		comments = append(comments, c)
 	}
+
+	// Sort comments by CreatedAt descending in memory
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].CreatedAt.After(comments[j].CreatedAt)
+	})
+
 	return comments, nil
 }

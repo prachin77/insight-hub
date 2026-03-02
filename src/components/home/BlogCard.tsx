@@ -131,6 +131,9 @@ const BlogCard = ({ blog, index = 0, variant = "default" }: BlogCardProps) => {
             <span className="flex items-center gap-1 text-xs">
               <Heart className="h-3 w-3" /> {formatNumber(blog.likes)}
             </span>
+            <span className="flex items-center gap-1 text-xs">
+              <MessageCircle className="h-3 w-3" /> {formatNumber(blog.comments)}
+            </span>
           </div>
         </div>
       </div>
