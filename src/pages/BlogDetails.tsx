@@ -21,7 +21,7 @@ const BlogDetail = () => {
   const [showComments, setShowComments] = useState(true);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<{ comment_id: string; author_username: string; content: string; created_at: string }[]>([]);
-
+  const [following, setFollowing] = useState(false);
   useEffect(() => {
     if (blog) {
       // 1. Increment views
