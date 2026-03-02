@@ -213,7 +213,7 @@ const BlogDetail = () => {
         </h1>
         {/* Meta */}
         <div className="mt-6 flex flex-wrap items-center gap-4 border-b border-border pb-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary ring-2 ring-border">
               <User className="h-4 w-4" />
             </div>
@@ -223,6 +223,17 @@ const BlogDetail = () => {
                 <p className="text-xs text-muted-foreground">@{blog.author_username}</p>
               )}
             </div>
+            {!isAuthor && (
+              <Button
+                variant={following ? "secondary" : "default"}
+                size="sm"
+                className="ml-1 gap-1.5"
+                onClick={() => setFollowing((prev) => !prev)}
+              >
+                {following ? <UserCheck className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />}
+                {following ? "Following" : "Follow"}
+              </Button>
+            )}
           </div>
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" /> {formatDate(blog.created_at)}
