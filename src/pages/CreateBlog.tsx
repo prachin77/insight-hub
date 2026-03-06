@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Image, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,17 @@ import { API_BASE_URL } from "@/lib/api";
 
 const CreateBlog = () => {
     const navigate = useNavigate();
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
+    const location = useLocation();
+    const editBlog = location.state?.blog;
+    const isEditMode = !!editBlog;
+
+    const [title, setTitle] = useState(editBlog?.title || "");
+    const [content, setContent] = useState(editBlog?.blog_content || "");
     const [tagInput, setTagInput] = useState("");
-    const [tags, setTags] = useState<string[]>([]);
-    const [imageUrl, setImageUrl] = useState("");
+    const [tags, setTags] = useState<string[]>(editBlog?.tags || []);
+    const [imageUrl, setImageUrl] = useState(editBlog?.blog_image || "");
     const [loading, setLoading] = useState(false);
-    const [category, setCategory] = useState("");
+    const [category, setCategory] = useState(editBlog?.category || "");
     const { user, isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -75,12 +79,15 @@ const CreateBlog = () => {
 
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/blogs`, {
-                method: "POST",
+            const url = isEditMode ? `${API_BASE_URL}/blogs/update` : `${API_BASE_URL}/blogs`;
+            const method = isEditMode ? "PUT" : "POST";
+            const res = await fetch(url, {
+                method,
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
+                    ...(isEditMode && { id: editBlog.id }),
                     title,
                     blog_content: content,
                     tags,
@@ -94,13 +101,13 @@ const CreateBlog = () => {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data?.message || "Failed to publish blog.");
+                throw new Error(data?.message || `Failed to ${isEditMode ? "update" : "publish"} blog.`);
             }
 
-            toast.success("Blog published successfully!");
+            toast.success(isEditMode ? "Blog updated successfully!" : "Blog published successfully!");
             navigate("/");
         } catch (err: any) {
-            toast.error(err.message || "Failed to publish blog.");
+            toast.error(err.message || `Failed to ${isEditMode ? "update" : "publish"} blog.`);
         } finally {
             setLoading(false);
         }
