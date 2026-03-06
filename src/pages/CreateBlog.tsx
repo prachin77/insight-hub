@@ -133,10 +133,10 @@ const CreateBlog = () => {
                     </Button>
 
                     <h1 className="font-display text-3xl font-bold text-foreground">
-                        Create a New Story
+                        {isEditMode ? "Edit Story" : "Create a New Story"}
                     </h1>
                     <p className="mt-2 text-muted-foreground">
-                        Share your ideas with the world.
+                        {isEditMode ? "Update your story details." : "Share your ideas with the world."}
                     </p>
 
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -261,7 +261,7 @@ const CreateBlog = () => {
                                 Cancel
                             </Button>
                             <Button type="submit" className="gap-2" disabled={loading}>
-                                {loading ? "Publishing..." : "Publish Story"}
+                                {loading ? (isEditMode ? "Updating..." : "Publishing...") : (isEditMode ? "Update Story" : "Publish Story")}
                                 {!loading && <Send className="h-4 w-4" />}
                             </Button>
                         </div>
