@@ -70,6 +70,22 @@ func Login(c *gin.Context) {
 	}))
 }
 
+func GetUser(c *gin.Context) {
+	username := c.Param("username")
+	if username == "" {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("username is required", nil))
+		return
+	}
+
+	user, err := db.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("user fetched successfully", user))
+}
+
 func Logout(c *gin.Context) {
 	// Clear auth cookie by setting it with immediate expiration
 	cookie := utils.NewAuthCookie("")

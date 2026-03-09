@@ -90,3 +90,56 @@ func userExists(ctx context.Context, email string) (bool, error) {
 	}
 	return true, nil
 }
+
+// GetUserByID retrieves a user by their document ID.
+func GetUserByID(ctx context.Context, id string) (*models.User, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(usersCollection).Doc(id).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var user models.User
+	if err := doc.DataTo(&user); err != nil {
+		return nil, err
+	}
+	user.Password = ""
+	return &user, nil
+}
+
+// GetUserIDByUsername retrieves the document ID for a given username.
+func GetUserIDByUsername(ctx context.Context, username string) (string, error) {
+	if FirestoreClient == nil {
+		return "", errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(usersCollection).Where("Username", "==", username).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return "", errors.New("user not found")
+	}
+
+	return doc.Ref.ID, nil
+}
+
+// GetUserByUsername retrieves a user by their username.
+func GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(usersCollection).Where("Username", "==", username).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	var user models.User
+	if err := doc.DataTo(&user); err != nil {
+		return nil, err
+	}
+	user.ID = doc.Ref.ID
+	user.Password = ""
+	return &user, nil
+}

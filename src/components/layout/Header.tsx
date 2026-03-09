@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthGuardButton from "@/components/AuthGuardButton";
+import { API_BASE_URL } from "@/lib/api";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -15,6 +16,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -26,6 +28,29 @@ const Header = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Fetch unread count
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      const fetchUnread = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/notifications/unread-count?user_id=${user.id}`);
+          const data = await res.json();
+          if (data.success) {
+            setUnreadCount(data.data.count);
+          }
+        } catch (err) {
+          console.error("Failed to fetch unread count:", err);
+        }
+      };
+      fetchUnread();
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnread, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated, user?.id]);
 
   const getInitials = () => {
     if (user?.fullName) {
@@ -108,7 +133,9 @@ const Header = () => {
           >
             <Link to="/notifications">
               <Bell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           </Button>
 

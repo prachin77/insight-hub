@@ -3,14 +3,15 @@ package models
 import "time"
 
 type User struct {
-	FullName   string    `json:"fullName"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email" binding:"required,email"`
-	Password   string    `json:"password" binding:"required"`
-	CreatedAt  time.Time `json:"created_at"`
-	NoOfBlogs  int       `json:"no_of_blogs"`
-	Followers  int       `json:"followers"`
-	Followings int       `json:"followings"`
+	ID         string    `firestore:"id,omitempty" json:"id"`
+	FullName   string    `firestore:"FullName" json:"fullName"`
+	Username   string    `firestore:"Username" json:"username"`
+	Email      string    `firestore:"Email" json:"email" binding:"required,email"`
+	Password   string    `firestore:"Password" json:"password,omitempty" binding:"required"`
+	CreatedAt  time.Time `firestore:"CreatedAt" json:"created_at"`
+	NoOfBlogs  int       `firestore:"NoOfBlogs" json:"no_of_blogs"`
+	Followers  int       `firestore:"Followers" json:"followers"`
+	Followings int       `firestore:"Followings" json:"followings"`
 }
 
 type FollowUser struct {

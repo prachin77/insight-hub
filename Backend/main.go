@@ -47,12 +47,23 @@ func main() {
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
 	r.POST("/logout", handlers.Logout)
+	r.GET("/user/:username", handlers.GetUser)
 	r.POST("/blogs", handlers.CreateBlog)
+	r.PUT("/blogs/update", handlers.UpdateBlog)
+	r.DELETE("/blogs/delete", handlers.DeleteBlog)
 	r.GET("/blogs", handlers.GetBlogs)
 	r.POST("/blogs/increment-views", handlers.IncrementViews)
 	r.POST("/blogs/toggle-like", handlers.ToggleLike)
 	r.POST("/comments", handlers.AddComment)
 	r.GET("/comments", handlers.GetComments)
+
+	// Follow and Notification routes
+	r.POST("/follow/toggle", handlers.ToggleFollow)
+	r.GET("/follow/check", handlers.CheckFollow)
+	r.GET("/notifications", handlers.GetNotifications)
+	r.POST("/notifications/:id/read", handlers.MarkNotificationRead)
+	r.POST("/notifications/read-all", handlers.MarkAllNotificationsRead)
+	r.GET("/notifications/unread-count", handlers.GetUnreadCount)
 
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)

@@ -230,3 +230,62 @@ func GetComments(ctx context.Context, blogID string) ([]models.Comment, error) {
 
 	return comments, nil
 }
+
+// UpdateBlog updates an existing blog post.
+func UpdateBlog(ctx context.Context, blog *models.Blog) error {
+	if FirestoreClient == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", blog.Title).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return errors.New("blog not found")
+	}
+
+	_, err = doc.Ref.Update(ctx, []firestore.Update{
+		{Path: "blog_content", Value: blog.BlogContent},
+		{Path: "updated_at", Value: time.Now()},
+		{Path: "category", Value: blog.Category},
+		{Path: "tags", Value: blog.Tags},
+		{Path: "blog_image", Value: blog.BlogImage},
+	})
+	return err
+}
+
+// DeleteBlog deletes a blog post and its comments, and decrements the author's blog count.
+func DeleteBlog(ctx context.Context, title string) error {
+	if FirestoreClient == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return errors.New("blog not found")
+	}
+
+	var b models.Blog
+	if err := doc.DataTo(&b); err != nil {
+		return err
+	}
+
+	// Delete comments
+	comments, _ := GetComments(ctx, doc.Ref.ID)
+	for _, c := range comments {
+		_, _ = FirestoreClient.Collection("comments").Doc(c.CommentID).Delete(ctx)
+	}
+
+	// Delete blog
+	_, err = doc.Ref.Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Decrement author blog count
+	if b.AuthorID != "" {
+		_, _ = FirestoreClient.Collection("users").Doc(b.AuthorID).Update(ctx, []firestore.Update{
+			{Path: "NoOfBlogs", Value: firestore.Increment(-1)},
+		})
+	}
+
+	return nil
+}

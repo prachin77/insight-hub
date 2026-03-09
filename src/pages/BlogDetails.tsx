@@ -44,8 +44,20 @@ const BlogDetail = () => {
           })
           .catch((err) => console.error("Failed to fetch comments:", err));
       }
+
+      // 3. Check follow status
+      if (user && blog.author_id && user.id !== blog.author_id) {
+        fetch(`${API_BASE_URL}/follow/check?follower_id=${user.id}&following_id=${blog.author_id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              setFollowing(data.data.is_following);
+            }
+          })
+          .catch((err) => console.error("Failed to check follow status:", err));
+      }
     }
-  }, [blog]);
+  }, [blog, user]);
 
   const isAuthor = user && blog && user.id === blog.author_id;
 
@@ -133,6 +145,35 @@ const BlogDetail = () => {
       }
     } catch {
       toast.error("Failed to add comment");
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!user) {
+      toast.error("Please sign in to follow authors");
+      return;
+    }
+    if (!blog?.author_id) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/follow/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          follower_id: user.id,
+          following_id: blog.author_id,
+          action: following ? "unfollow" : "follow",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFollowing(!following);
+        toast.success(following ? "Unfollowed" : "Following");
+      } else {
+        toast.error(data.message || "Failed to update follow status");
+      }
+    } catch {
+      toast.error("Failed to update follow status");
     }
   };
 
@@ -228,7 +269,7 @@ const BlogDetail = () => {
                 variant={following ? "secondary" : "default"}
                 size="sm"
                 className="ml-1 gap-1.5"
-                onClick={() => setFollowing((prev) => !prev)}
+                onClick={handleFollow}
               >
                 {following ? <UserCheck className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />}
                 {following ? "Following" : "Follow"}

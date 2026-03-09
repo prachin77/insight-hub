@@ -58,6 +58,19 @@ func CreateBlog(c *gin.Context) {
 		return
 	}
 
+	// Notify followers
+	followers, _ := db.GetFollowers(c.Request.Context(), req.AuthorID)
+	author, _ := db.GetUserByID(c.Request.Context(), req.AuthorID)
+	for _, followerID := range followers {
+		db.CreateNotification(c.Request.Context(), &models.Notification{
+			Recipient: followerID,
+			Sender:    author.Username,
+			Type:      models.NotificationTypeBlog,
+			Message:   author.Username + " published a new blog \"" + req.Title + "\"",
+			BlogID:    blogID,
+		})
+	}
+
 	c.JSON(http.StatusCreated, models.NewSuccessResponse("blog created successfully", gin.H{
 		"id":   blogID,
 		"blog": req,
@@ -106,6 +119,29 @@ func ToggleLike(c *gin.Context) {
 		return
 	}
 
+	// Create notification if liked
+	if isLiked {
+		blogID, _ := db.GetBlogID(c.Request.Context(), req.Title)
+		blog, _ := db.GetAllBlogs(c.Request.Context()) // This is inefficient, but I'll use it for now as a quick fix or add GetBlogByTitle
+		var targetBlog models.Blog
+		for _, b := range blog {
+			if b.Title == req.Title {
+				targetBlog = b
+				break
+			}
+		}
+
+		if targetBlog.AuthorID != "" && targetBlog.AuthorUsername != req.Username {
+			db.CreateNotification(c.Request.Context(), &models.Notification{
+				Recipient: targetBlog.AuthorID,
+				Sender:    req.Username,
+				Type:      models.NotificationTypeLike,
+				Message:   req.Username + " liked your blog \"" + req.Title + "\"",
+				BlogID:    blogID,
+			})
+		}
+	}
+
 	c.JSON(http.StatusOK, models.NewSuccessResponse("like status toggled", gin.H{"liked": isLiked}))
 }
 
@@ -121,7 +157,60 @@ func AddComment(c *gin.Context) {
 		return
 	}
 
+	// Create notification for the blog author
+	// Fetch blog details to get author ID
+	blogs, _ := db.GetAllBlogs(c.Request.Context())
+	var targetBlog models.Blog
+	for _, b := range blogs {
+		if b.ID == req.BlogID {
+			targetBlog = b
+			break
+		}
+	}
+
+	if targetBlog.AuthorID != "" && targetBlog.AuthorID != req.AuthorID {
+		db.CreateNotification(c.Request.Context(), &models.Notification{
+			Recipient: targetBlog.AuthorID,
+			Sender:    req.AuthorUsername,
+			Type:      models.NotificationTypeComment,
+			Message:   req.AuthorUsername + " commented on your blog \"" + targetBlog.Title + "\"",
+			BlogID:    req.BlogID,
+		})
+	}
+
 	c.JSON(http.StatusCreated, models.NewSuccessResponse("comment added successfully", req))
+}
+
+func UpdateBlog(c *gin.Context) {
+	var req models.Blog
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	if err := db.UpdateBlog(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("blog updated successfully", req))
+}
+
+func DeleteBlog(c *gin.Context) {
+	var req struct {
+		Title string `json:"title"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	if err := db.DeleteBlog(c.Request.Context(), req.Title); err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("blog deleted successfully", nil))
 }
 
 func GetComments(c *gin.Context) {
