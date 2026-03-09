@@ -109,18 +109,60 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="font-display text-base font-bold text-primary-foreground">I</span>
+      <footer className="relative overflow-hidden border-t border-border bg-card py-16">
+        {/* Decorative gradient blob */}
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
+
+        <div className="container relative mx-auto px-4">
+          <div className="flex flex-col items-center gap-8">
+            {/* Logo + tagline */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+                  <span className="font-display text-lg font-bold text-primary-foreground">I</span>
+                </div>
+                <span className="font-display text-xl font-bold text-foreground">Inkwell</span>
               </div>
-              <span className="font-display text-lg font-bold text-foreground">Inkwell</span>
+              <p className="max-w-md text-center text-sm leading-relaxed text-muted-foreground">
+                Where ideas breathe. Built for writers who think in ink and readers who live between the lines.
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2026 Inkwell. A platform for curious minds.
-            </p>
+
+            {/* Stats ticker */}
+            <div className="flex items-center gap-8 rounded-full border border-border bg-secondary/40 px-8 py-3">
+              <div className="flex flex-col items-center">
+                <span className="font-display text-lg font-bold text-foreground">{blogs.length}</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Stories</span>
+              </div>
+              <div className="h-8 w-px bg-border" />
+              <div className="flex flex-col items-center">
+                <span className="font-display text-lg font-bold text-foreground">∞</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Ideas</span>
+              </div>
+              <div className="h-8 w-px bg-border" />
+              <div className="flex flex-col items-center">
+                <span className="font-display text-lg font-bold text-foreground">1</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Platform</span>
+              </div>
+            </div>
+
+            {/* GitHub + bottom line */}
+            <div className="flex flex-col items-center gap-4">
+              <a
+                href="https://github.com/prachin77/insight-hub"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-5 py-2.5 text-sm text-muted-foreground transition-all hover:border-primary/50 hover:bg-primary/10 hover:text-foreground"
+              >
+                <Github className="h-4 w-4 transition-transform group-hover:scale-110" />
+                <span>View Source</span>
+                <ExternalLink className="h-3 w-3 opacity-50" />
+              </a>
+              <p className="text-xs text-muted-foreground/60">
+                © 2026 Inkwell · Crafted with curiosity
+              </p>
+            </div>
           </div>
         </div>
       </footer>
