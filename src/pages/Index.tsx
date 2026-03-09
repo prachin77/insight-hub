@@ -129,24 +129,6 @@ const Index = () => {
               </p>
             </div>
 
-            {/* Stats ticker */}
-            <div className="flex items-center gap-8 rounded-full border border-border bg-secondary/40 px-8 py-3">
-              <div className="flex flex-col items-center">
-                <span className="font-display text-lg font-bold text-foreground">{blogs.length}</span>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Stories</span>
-              </div>
-              <div className="h-8 w-px bg-border" />
-              <div className="flex flex-col items-center">
-                <span className="font-display text-lg font-bold text-foreground">∞</span>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Ideas</span>
-              </div>
-              <div className="h-8 w-px bg-border" />
-              <div className="flex flex-col items-center">
-                <span className="font-display text-lg font-bold text-foreground">1</span>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Platform</span>
-              </div>
-            </div>
-
             {/* GitHub + bottom line */}
             <div className="flex flex-col items-center gap-4">
               <a
@@ -165,6 +147,11 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        {/* AI Floating Button */}
+        <button className="group fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl hover:shadow-primary/25">
+          <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
+        </button>
       </footer>
     </div>
   );
