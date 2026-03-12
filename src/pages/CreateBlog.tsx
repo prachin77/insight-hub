@@ -11,6 +11,26 @@ import { toast } from "sonner";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const CATEGORIES = [
+  "Technology",
+  "Artificial Intelligence",
+  "Web Development",
+  "Design & UX",
+  "Startup & Business",
+  "Productivity",
+  "Data Science",
+  "Cybersecurity",
+  "Health & Wellness",
+  "Finance & Crypto",
+];
 
 const CreateBlog = () => {
     const navigate = useNavigate();
