@@ -30,6 +30,7 @@ interface Message {
 
 const Messages = () => {
   const { user } = useAuth();
+  const { clearConversationUnread, refreshUnreads } = useUnreadMessages();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
