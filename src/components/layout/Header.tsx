@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadMessages } from "@/contexts/UnreadMessagesContext";
 import AuthGuardButton from "@/components/AuthGuardButton";
 import { API_BASE_URL } from "@/lib/api";
 
