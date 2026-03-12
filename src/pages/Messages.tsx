@@ -161,6 +161,9 @@ const Messages = () => {
                 credentials: "include",
                 body: JSON.stringify({ user_id: user.id, other_id: c.id })
               }).catch(err => console.error("Failed to auto-read:", err));
+            } else {
+              // Not viewing this convo — refresh shared unread context for header dot
+              refreshUnreads();
             }
 
             return {
