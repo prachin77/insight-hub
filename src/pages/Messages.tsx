@@ -83,6 +83,8 @@ const Messages = () => {
           setConversations(prev => prev.map(c => 
             c.id === selectedConvo.id ? { ...c, unread: 0 } : c
           ));
+          // Update shared context so header dot disappears
+          clearConversationUnread(selectedConvo.id);
         }
       } catch (err) {
         console.error("Error fetching messages:", err);
