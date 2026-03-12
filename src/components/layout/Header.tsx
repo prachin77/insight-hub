@@ -53,28 +53,6 @@ const Header = () => {
     }
   }, [isAuthenticated, user?.id]);
 
-  // Fetch unread message count from chat sidebar
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      const fetchUnreadMsgs = async () => {
-        try {
-          const res = await fetch(`${API_BASE_URL}/chat/sidebar?user_id=${user.id}`, { credentials: "include" });
-          const data = await res.json();
-          if (data.success && data.data) {
-            const total = (data.data as any[]).reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
-            setUnreadMsgCount(total);
-          }
-        } catch (err) {
-          console.error("Failed to fetch unread msg count:", err);
-        }
-      };
-      fetchUnreadMsgs();
-      const interval = setInterval(fetchUnreadMsgs, 15000);
-      return () => clearInterval(interval);
-    } else {
-      setUnreadMsgCount(0);
-    }
-  }, [isAuthenticated, user?.id]);
 
   const getInitials = () => {
     if (user?.fullName) {
