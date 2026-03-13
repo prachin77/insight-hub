@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
-import { GoogleLogin } from "@react-oauth/google";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 const SignIn = () => {
   const { login } = useAuth();

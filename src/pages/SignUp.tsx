@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
-import { GoogleLogin } from "@react-oauth/google";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 const SignUp = () => {
   const { login } = useAuth();
